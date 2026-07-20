@@ -4,6 +4,7 @@ import userRouter from './routes/user.routes.js';
 import authRouter from './routes/auth.routes.js';
 import connectTODatabase from './database/mongodb.js';
 import validationMiddlewares from './middlewares/validationMiddlewares.js';
+import cookieParser from 'cookie-parser';
 
 const app = express();
 const port = Number(PORT) || 3001;
@@ -11,7 +12,7 @@ const port = Number(PORT) || 3001;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser() )
+app.use(cookieParser());
 
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/auth', authRouter);

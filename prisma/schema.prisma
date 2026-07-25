@@ -1,28 +1,85 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
+
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
-enum Role {
-  student
-  teacher
-  admin
+enum role {
+  Admin
+  Teacher
+  Student
 }
-
 model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  password  String
-  role      Role     @default(student)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         String
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+
+  // Reverse relations
+  student        Student? // present only if role = Student
+  coursesCreated Course[] @relation("CourseCreatedBy")
+  gradesRecorded Grade[]  @relation("GradeRecordedBy")
+
+  @@map("users")
+
 }
+
+model Student {
+  id            Int       @id @default(autoincrement())
+  userId        Int       @unique @map("user_id")
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  enrollmentNo  String?   @unique @map("enrollment_no")
+  dateOfBirth   DateTime? @map("date_of_birth")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  grades Grade[]
+
+  @@map("students")
+}
+
+model Course {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  credits     Int?
+  createdById Int      @map("created_by")
+  createdBy   User     @relation("CourseCreatedBy", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  grades Grade[]
+
+  @@index([createdById])
+  @@map("courses")
+}
+
+model Grade {
+  id          Int      @id @default(autoincrement())
+  studentId   Int      @map("student_id")
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  courseId    Int      @map("course_id")
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  score       Decimal  @db.Decimal(5, 2)
+  comment     String?
+  recordedById Int     @map("recorded_by")
+  recordedBy  User     @relation("GradeRecordedBy", fields: [recordedById], references: [id])
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([studentId, courseId]) // one grade record per student per course
+  @@index([studentId])
+  @@index([courseId])
+  @@map("grades")
+}
+

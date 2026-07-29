@@ -5,7 +5,7 @@
 
 generator client {
   provider = "prisma-client-js"
-
+  url      = env("DATABASE_URL")
 }
 
 datasource db {
@@ -18,22 +18,21 @@ enum role {
   Student
 }
 model User {
-  id           Int      @id @default(autoincrement())
-  name         String
-  email        String   @unique
-  passwordHash String   @map("password_hash")
-  role         String
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  id                Int      @id @default(autoincrement())
+  name              String
+  email             String   @unique
+  passwordHash      String   @map("password_hash")
+  role              String
+  isVerified        Boolean  @default(false) @map("is_verified")
+  verificationToken String?  @map("verification_token")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
 
-
-  // Reverse relations
-  student        Student? // present only if role = Student
+  student        Student?
   coursesCreated Course[] @relation("CourseCreatedBy")
   gradesRecorded Grade[]  @relation("GradeRecordedBy")
 
   @@map("users")
-
 }
 
 model Student {
@@ -52,8 +51,8 @@ model Student {
 model Course {
   id          Int      @id @default(autoincrement())
   title       String
-  description String?
-  credits     Int?
+  courseCode  String?  @map("course_code")
+  units       Int?
   createdById Int      @map("created_by")
   createdBy   User     @relation("CourseCreatedBy", fields: [createdById], references: [id])
   createdAt   DateTime @default(now()) @map("created_at")

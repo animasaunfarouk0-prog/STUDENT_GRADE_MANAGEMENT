@@ -1,16 +1,18 @@
-import { Router } from 'express';
-import { register, login, logout } from '../src/controllers/authcontroller.js';
+import express from "express";
+import { register, login, logout, verifyEmail}from '../controllers/authController.js';
 
-const authRouter = Router();
+const authRouter = express.Router();
 
-// POST /api/v1/auth/register — Admin
-authRouter.post('/auth/register', checkRole(['Admin']), (req, res) => {
-    res.json({ message: "User registered" });
-});
+// POST /api/v1/auth/register — Student
+authRouter.post("/register", register);
 
 // POST /api/v1/auth/login — All Roles
-authRouter.post('/auth/login', (req, res) => {
-    res.json({ message: "User authenticated, JWT returned" });
-});
+authRouter.post("/login", login);
+
+// POST /api/v1/auth/logout — All Roles
+authRouter.post("/logout", logout);
+
+// GET  /api/v1/auth/verifyEmail
+authRouter.get("/verify/:token", verifyEmail);
 
 export default authRouter;
